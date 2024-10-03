@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>찾고싶어요</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="styles.css">
+        <script>
+            function chooseCategory() {
+            var place = document.getElementById('place').value;
+            var type = document.getElementById('type').value;
+            var price = document.getElementById('price').value;
+            var queryPara = '?place=' + encodeURIComponent(place) + '&type=' + encodeURIComponent(type) + '&price' + encodeURIComponent(price);
+            window.location.href = 'items.html' + queryPara;
+        }
+        </script>
+    </head>
+    <body>
+        <header>
+            <a href="index.html"><div class='greet'>찾아봐요,<br/>다같이.</div></a>
+            <h3>찾고싶어요</h3>
+        </header>
+            <input type='text' placeholder='분실 지역구' id='place' required/>
+            <input type='text' placeholder='분실물 유형' id='type' required/>
+            <input type='text' placeholder='사례금' id='price' required/>
+            <div class='btnwrap'>
+                <label class='submitwrap'>찾기<input type='submit' value='등록' class='submit' onclick="chooseCategory()"/></label>
+                <a href='index.html'><div class='cancel'>취소</div></a>
+            </div>
+    </body>
+</html>

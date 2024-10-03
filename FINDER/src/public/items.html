@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <title>분실물</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <a href="#">
+        <div class="float"><span>TOP</span></div>
+    </a>
+    <header>
+        <a href="index.html"><div class='greet'>찾아봐요,<br/>다같이.</div></a>
+        <h3 id="where">ㅇㅇ구 분실물</h3>
+    </header>
+    <div id="map"></div>
+    <main class="itemContainer"></main>
+    <footer>
+        <div class='Qnew'>내 분실물이 없나요?</div>
+        <div class='goSignUp'><a href='signup.html' style="text-decoration: underline;">분실물 등록하기</a></div>
+    </footer>
+    <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=015f7fcf44db3d7560e8b9ba7ff20a26"></script>
+    <script>
+        /* '어디어디' 분실물 '어디어디' 뭐넣어 코드 */
+        const urlPara = new URLSearchParams(window.location.search);
+        const cplace = urlPara.get('place');
+        const ctype = urlPara.get('type');
+        const cprice = urlPara.get('price');
+        let where = document.getElementById("where").innerHTML = cplace + "분실물";
+        /*연세대 중심설정하고 지도생성 ㅇㅇ*/
+        const container = document.getElementById('map');
+        pxx = 37.56376886760046;
+        pyy = 126.93776471069354;
+        if (cplace === "연세대학교") {
+            pxx = 37.56376886760046;
+            pyy = 126.93776471069354;
+        } else if (cplace === "천안시청") {
+            pxx = 36.81503182656032;
+            pyy = 127.11392312655443;
+        } else if (cplace === "강남구청역") {
+            pxx = 37.51729997754024;
+            pyy = 127.04127592654241;
+        }
+        let options = { 
+            center: new kakao.maps.LatLng(pxx, pyy),
+            level: 4
+        };
+        const map = new kakao.maps.Map(container, options);
+        /*경찰청에서 데이터 불러오기*/
+        var request = require('request');
+
+    var url = 'http://apis.data.go.kr/1320000/LostGoodsInfoInqireService/getLostGoodsInfoAccToClAreaPd';
+    var queryParams = '?' + encodeURIComponent('serviceKey') + '=서비스키'; /* Service Key*/
+    queryParams += '&' + encodeURIComponent('START_YMD') + '=' + encodeURIComponent('20170801'); /* */
+    queryParams += '&' + encodeURIComponent('END_YMD') + '=' + encodeURIComponent('20171130'); /* */
+    queryParams += '&' + encodeURIComponent('PRDT_CL_CD_01') + '=' + encodeURIComponent('PRA000'); /* */
+    queryParams += '&' + encodeURIComponent('PRDT_CL_CD_02') + '=' + encodeURIComponent('PRA300'); /* */
+    queryParams += '&' + encodeURIComponent('LST_LCT_CD') + '=' + encodeURIComponent('LCA000'); /* */
+    queryParams += '&' + encodeURIComponent('pageNo') + '=' + encodeURIComponent('1'); /* */
+    queryParams += '&' + encodeURIComponent('numOfRows') + '=' + encodeURIComponent('10'); /* */
+
+    request({
+        url: url + queryParams,
+        method: 'GET'
+    }, function (error, response, body) {
+        //console.log('Status', response.statusCode);
+        //console.log('Headers', JSON.stringify(response.headers));
+        //console.log('Reponse received', body);
+    });
+
+        /* ajax fetch문으로 데이터 불러옴 이거 활용해서 카카오맵에 마커 박을거임 */
+        fetch("product.json")
+        .then(response => {
+            if (!response.ok) {throw new Error(`HTTP error: ${response.status}`);}
+            return response.json();
+        })
+        .then(json => init(json))
+        .catch(error => console.error(`Fetch problem: ${error.message}`));
+        function init(items) {
+            // define Variables
+            const main = document.querySelector("main");
+            let typeGroup, placeGroup, finalGroup;
+            // setup
+            typeGroup = items.filter(obj => obj.type === ctype);
+            placeGroup = typeGroup.filter(obj => obj.place === cplace);
+            finalGroup = placeGroup.filter(obj => obj.type === ctype);
+            update1();
+            // fine functions
+            function update1() {
+                if (finalGroup.length === 0) { // if no data exist
+                    const par = document.createElement("p");
+                    par.textContent = "분실물이 접수되지 않은 것 같습니다.";
+                    main.appendChild(par);
+                }
+                else { //print
+                    for (const i in finalGroup) {builditem(finalGroup[i]);}
+                }
+            }
+            function builditem(item) { // 지도에 먼저 박고, 리스트에 넣을거임 ㅇ
+                let markerImgsrc = item.img[0];
+                let markerSize = new kakao.maps.Size(24, 35);
+                let markerImg = new kakao.maps.MarkerImage(markerImgsrc, markerSize);
+                let markerPosi = new kakao.maps.LatLng(item.latLng_x, item.latLng_y);
+                var marker = new kakao.maps.Marker({
+                    map: map,
+                    position: markerPosi,
+                    title: item.type, // hover하면 표시
+                    image: markerImg
+                });
+                marker.setMap(map);
+                const fullCon = document.createElement("div");
+                const imgCon = document.createElement("div");
+                fullCon.setAttribute("style", "fullCon");
+                const info = document.createElement("div");
+                info.setAttribute("style", "itemInfo")
+                info.innerText = item.type;
+                for (let i = 0; i < item.img.length; i++) {
+                    let imggg = document.createElement("img");
+                    imggg.src = item.img[i];
+                    imggg.alt = item.img[i];
+                    imggg.setAttribute("style", "width:100px;")
+                    imgCon.appendChild(imggg);
+                }
+                fullCon.appendChild(info);
+                fullCon.appendChild(imgCon);
+                main.appendChild(fullCon);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>찾아줄래요</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="styles.css">
+        <script>
+            function loadImage(event) {
+                const input = event.target;
+                if (input.files.length !== 0) {document.getElementById("blank").setAttribute("style", "display:block;");}
+                for (let i = 0; i < input.files.length; i++) {
+                    let reader = new FileReader();
+                    reader.onload = function() {
+                        let img = document.createElement("img");
+                        img.src = reader.result;
+                        img.setAttribute("style", "width:100px; margin:5px;");
+                        document.getElementById("blank").appendChild(img);
+                    }
+                    reader.readAsDataURL(input.files[i]);
+                }   
+            }
+        </script>
+    </head>
+    <body>
+        <a href="index.html"><div class='greet'>찾아봐요,<br/>다같이.</div></a>
+        <h3>찾아줄래요</h3>
+        <form id="myForm" method='post' action='/upload'>
+            <input type='text' placeholder='습득 지역구' name="place" id='place' required/>
+            <input type='text' placeholder='분실물 유형' name="type" id='type' required/>
+            <input type='text' placeholder='전달 방식' name="way" id='way' required/>
+            <label class="input_file">사진 추가하기<input type='file' name="img" required multiple onchange="loadImage(event)"/></label>
+            <div id="blank" style="display:none;"></div>
+            <div class='btnwrap'>
+                <label class='submitwrap'>등록<input type='submit' class='submit'/></label>
+                <a href='index.html'><div class='cancel'>취소</div></a>
+            </div>
+        </form>
+    </body>
+    <script>
+        document.getElementById("productForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+        const newObject = {
+          name: document.getElementById("place").value,
+          type: document.getElementById("type").value,
+        };
+        fetch("/add-product", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(newObject)
+        })
+          .then(function (response) {
+            if (!response.ok) {
+              throw new Error("서버 응답이 실패했습니다. 상태 코드: " + response.status);
+            }
+            return response.json();
+          })
+          .then(function (data) {
+            console.log("데이터가 성공적으로 서버에 추가되었습니다.", data);
+          })
+          .catch(function (error) {
+            console.error("오류 발생:", error);
+          });
+      });
+    </script>
+</html>
